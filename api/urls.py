@@ -7,6 +7,7 @@ import users.views as users
 
 urlpatterns = [
   # For Authentication
+    path('login', users.user_login, name='user_login'),
     path('token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
 

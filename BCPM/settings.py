@@ -50,6 +50,9 @@ INSTALLED_APPS = [
 
     # DRF
     'rest_framework',
+
+    # To remove CORS Error
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -60,6 +63,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # To remove CORS Error
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'BCPM.urls'
@@ -141,8 +148,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Default requires authentication
     ],
 }
 
@@ -153,4 +161,11 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# For Testing Purposes
+CORS_ALLOW_ALL_ORIGINS = True
+
+# For Deployment Purposes
+# CORS_ALLOWED_ORIGINS = []
+
 
