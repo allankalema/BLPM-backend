@@ -65,7 +65,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=100, unique=True)
     date_of_birth = models.DateField()
     nin = models.CharField(max_length=20, unique=True)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE)
 
     # Role fields
     land_owner = models.BooleanField(default=False)
