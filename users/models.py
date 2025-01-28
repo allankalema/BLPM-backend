@@ -3,19 +3,6 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 
 
-class Location(models.Model):
-    village = models.CharField(max_length=100)
-    parish = models.CharField(max_length=100)
-    subcounty = models.CharField(max_length=100)
-    county = models.CharField(max_length=100)
-    district = models.CharField(max_length=100)
-    country = models.CharField(max_length=100, default='Uganda')
-
-    def __str__(self):
-        return f"{self.village}, {self.parish}, {self.subcounty}, {self.county}, {self.district}, {self.country}"
-
-    class Meta:
-        verbose_name_plural = "Locations"
 
 
 class AccountManager(BaseUserManager):
@@ -65,7 +52,6 @@ class Account(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=100, unique=True)
     date_of_birth = models.DateField()
     nin = models.CharField(max_length=20, unique=True)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE)
 
     # Role fields
     land_owner = models.BooleanField(default=False)
@@ -87,3 +73,19 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         verbose_name_plural = "Accounts"
+
+
+class Location(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='locations')
+    village = models.CharField(max_length=100)
+    parish = models.CharField(max_length=100)
+    subcounty = models.CharField(max_length=100)
+    county = models.CharField(max_length=100)
+    district = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, default='Uganda')
+
+    def __str__(self):
+        return f"{self.village}, {self.parish}, {self.subcounty}, {self.county}, {self.district}, {self.country}"
+
+    class Meta:
+        verbose_name_plural = "Locations"
