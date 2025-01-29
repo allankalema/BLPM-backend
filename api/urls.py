@@ -18,6 +18,6 @@ urlpatterns = [
     path('users/<str:username>', users.get_user, name='get_user'),
     path('users/update/<str:username>/', users.update_user, name='update_user'),
 
-    path('update_password/', views.update_password, name='update_password'),
-    path('logout/', views.user_logout, name='user_logout'),
+    path('update_password/', users.update_password, name='update_password'),
+    path('logout/', users.user_logout, name='user_logout'),
 ]
