@@ -16,6 +16,6 @@ urlpatterns = [
     # User CRUD URLs
     path('users/create/', users.create_user, name='create_user'),  # Fixed this line
     path('users/<str:username>', users.get_user, name='get_user'),
-    path('users/update/<str:username>', users.update_user, name='update_user'),
+    path('users/update/<str:username>/', users.update_user, name='update_user'),
     path('users/delete/<str:username>', users.delete_user, name='delete_user'),
 ]

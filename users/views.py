@@ -96,11 +96,16 @@ def get_user(request, username):
 
 
 @api_view(['PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])  # This ensures only authenticated users can update
 def update_user(request, username):
     """
     Update user information.
+    Only the user who is logged in or an admin can update their own data.
     """
+    # Ensure the logged-in user is the one being updated
+    if request.user.username != username:
+        return Response({'error': 'You do not have permission to update this user'}, status=status.HTTP_403_FORBIDDEN)
+
     user = get_object_or_404(Account, username=username)
     
     # Update fields from the request
@@ -110,15 +115,20 @@ def update_user(request, username):
     user.date_of_birth = request.data.get('date_of_birth', user.date_of_birth)
     user.nin = request.data.get('nin', user.nin)
     
+    # If location data is provided, update it
+    if 'location' in request.data:
+        user.location = request.data['location']
+    
     # Save the changes
     user.save()
-    
+
     return Response({
         'message': 'User updated successfully',
         'user': AccountSerializer(user).data
     })
 
-
+    
+    
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_user(request, username):
