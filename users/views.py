@@ -127,16 +127,36 @@ def update_user(request, username):
         'user': AccountSerializer(user).data
     })
 
+
     
-    
-@api_view(['DELETE'])
+@api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def delete_user(request, username):
+def update_password(request):
     """
-    Delete a user by username.
+    Update the user's password.
     """
-    user = get_object_or_404(Account, username=username)
-    user.delete()
-    return Response({
-        'message': 'User deleted successfully'
-    }, status=status.HTTP_204_NO_CONTENT)
+    user = request.user
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+
+    if not user.check_password(old_password):
+        return Response({'error': 'Old password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if old_password == new_password:
+        return Response({'error': 'New password must be different from the old password'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(new_password)
+    user.save()
+
+    # Ensure the user session is updated with the new password
+    update_session_auth_hash(request, user)
+
+    return Response({'message': 'Password updated successfully'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def user_logout(request):
+    """
+    Logout the user by deleting or ignoring the access token.
+    """
+    return Response({'message': 'You have successfully logged out'})

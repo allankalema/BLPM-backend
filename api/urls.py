@@ -17,5 +17,7 @@ urlpatterns = [
     path('users/create/', users.create_user, name='create_user'),  # Fixed this line
     path('users/<str:username>', users.get_user, name='get_user'),
     path('users/update/<str:username>/', users.update_user, name='update_user'),
-    path('users/delete/<str:username>', users.delete_user, name='delete_user'),
+
+    path('update_password/', views.update_password, name='update_password'),
+    path('logout/', views.user_logout, name='user_logout'),
 ]
