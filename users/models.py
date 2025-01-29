@@ -6,12 +6,12 @@ from django.contrib.auth.models import PermissionsMixin
 
 
 class AccountManager(BaseUserManager):
-    def create_user(self, username, first_name, last_name, email, date_of_birth, nin, password=None, location=None, **extra_fields):
+    def create_user(self, username, first_name, last_name, email, date_of_birth, nin, password=None, **extra_fields):
         if not email:
             raise ValueError("The Email field is required")
         if not username:
             raise ValueError("The Username field is required")
-        
+
         email = self.normalize_email(email)
         user = self.model(
             username=username,
@@ -20,23 +20,6 @@ class AccountManager(BaseUserManager):
             email=email,
             date_of_birth=date_of_birth,
             nin=nin,
-            location=location,
-            **extra_fields
-        )
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, username, first_name, last_name, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-
-        # Superuser does not need location
-        user = self.model(
-            username=username,
-            first_name=first_name,
-            last_name=last_name,
-            email=self.normalize_email(email),
             **extra_fields
         )
         user.set_password(password)
