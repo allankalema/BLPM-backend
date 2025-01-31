@@ -26,12 +26,15 @@ def user_login(request):
         })
     else:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-    
 
 @api_view(['GET'])
-def protected_view(request):
-    return Response({'message': 'You have access to this view!'})
+@permission_classes([AllowAny])
+def checkUserName(request, username):
+    if not username:
+        return Response({"error": "Username is required"}, status=400)
 
+    is_available = not Account.objects.filter(username=username).exists()
+    return Response({"available": is_available}, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -45,13 +48,13 @@ def create_user(request):
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
         email = request.data.get('email')
-        date_of_birth = request.data.get('date_of_birth')
+        date_of_birth = '2000-12-12'
         nin = request.data.get('nin')
         password = request.data.get('password')
 
         # Check if any required fields are missing
-        if not all([username, first_name, last_name, email, date_of_birth, nin, password]):
-            return Response({'error': 'All required fields must be provided'}, status=status.HTTP_400_BAD_REQUEST)
+        # if not all([username, first_name, last_name, email, date_of_birth, nin, password]):
+        #     return Response({'error': 'All required fields must be provided'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Create the Account user first
         user = Account.objects.create_user(
@@ -86,7 +89,6 @@ def create_user(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def get_user(request, username):
     """
     Retrieve user details by username.
@@ -95,14 +97,14 @@ def get_user(request, username):
     return Response(AccountSerializer(user).data)
 
 
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])  # This ensures only authenticated users can update
-def update_user(request, username):
+@api_view(['POST'])
+def update_user(request):
     """
     Update user information.
     Only the user who is logged in or an admin can update their own data.
     """
-    # Ensure the logged-in user is the one being updated
+
+    username = request.data.get('username')
     if request.user.username != username:
         return Response({'error': 'You do not have permission to update this user'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -112,12 +114,12 @@ def update_user(request, username):
     user.first_name = request.data.get('first_name', user.first_name)
     user.last_name = request.data.get('last_name', user.last_name)
     user.email = request.data.get('email', user.email)
-    user.date_of_birth = request.data.get('date_of_birth', user.date_of_birth)
-    user.nin = request.data.get('nin', user.nin)
+    # user.date_of_birth = request.data.get('date_of_birth', user.date_of_birth)
+    # user.nin = request.data.get('nin', user.nin)
     
-    # If location data is provided, update it
-    if 'location' in request.data:
-        user.location = request.data['location']
+    # # If location data is provided, update it
+    # if 'location' in request.data:
+    #     user.location = request.data['location']
     
     # Save the changes
     user.save()
@@ -149,7 +151,7 @@ def update_password(request):
     user.save()
 
     # Ensure the user session is updated with the new password
-    update_session_auth_hash(request, user)
+    # update_session_auth_hash(request, user)
 
     return Response({'message': 'Password updated successfully'})
 
