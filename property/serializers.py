@@ -4,9 +4,22 @@ from .models import Property, LandLocation
 class PropertySerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
-        fields = ('id', 'land_title', 'title_number', 'title_document', 'owner', 'total_area', 'reference_point', 'date_surveyed')
+        fields = '__all__'  # We can include all fields of the Property model
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make fields optional for updates
+        for field in self.fields.values():
+            field.required = False
+
 
 class LandLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = LandLocation
-        fields = ('id', 'property', 'latitude', 'longitude', 'altitude', 'village', 'parish', 'subcounty', 'county', 'district', 'country')
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make fields optional for updates
+        for field in self.fields.values():
+            field.required = False
