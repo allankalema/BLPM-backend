@@ -23,14 +23,14 @@ class PropertyAdmin(admin.ModelAdmin):
 
 @admin.register(LandLocation)
 class LandLocationAdmin(admin.ModelAdmin):
-    list_display = ('property', 'latitude', 'longitude', 'altitude')
-    search_fields = ('property__land_title', 'property__title_number')
-    list_filter = ('property',)
+    list_display = ('property', 'latitude', 'longitude', 'altitude', 'village', 'parish', 'subcounty', 'county', 'district', 'country')
+    search_fields = ('property__land_title', 'property__title_number', 'village', 'parish', 'subcounty', 'county', 'district', 'country')
+    list_filter = ('property', 'village', 'parish', 'subcounty', 'county', 'district', 'country')
     ordering = ('property__land_title',)
 
     fieldsets = (
         ("Location Details", {
-            "fields": ("property", "latitude", "longitude", "altitude"),
+            "fields": ("property", "latitude", "longitude", "altitude", "village", "parish", "subcounty", "county", "district", "country"),
         }),
     )
 
