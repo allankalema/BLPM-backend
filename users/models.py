@@ -53,6 +53,9 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
+    
+    def get_username(self):
+        return self.username
 
     class Meta:
         verbose_name_plural = "Accounts"

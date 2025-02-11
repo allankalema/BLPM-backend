@@ -1,18 +1,21 @@
 from django.urls import path
 import users.views as users
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     # Authentication
     path('login', users.user_login, name='user_login'),
-
-    # User Registration (Two-step)
-    path('register', users.register, name='register'),
-    path('create_location', users.create_location, name='complete_profile'),
-
-    # Other User Operations
+    path('token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth-user', users.get_auth_user, name='get_auth_user'),
+    path('test', users.test, name='test'),
+    
+    # User CRUD URLs
+    path('register', users.create_user, name='create_user'),  # Fixed this line
     path('check-username/<str:username>', users.checkUserName),
+    # path('users/<str:username>', users.get_user, name='get_user'),
     path('users/update', users.update_user, name='update_user'),
-    path('location/update/', users.update_location, name='update_location'),
-    path('update_password/', users.update_password, name='update_password'),
-    path('logout/', users.user_logout, name='user_logout'),
+
+    path('update_password', users.update_password, name='update_password'),
+    path('logout', users.user_logout, name='user_logout'),
 ]
