@@ -1,15 +1,24 @@
+import mimetypes
 from django.db import models
 from users.models import Account, Location
 from django.core.exceptions import ValidationError
 
+# ✅ Define the function BEFORE the Property model
 def validate_file_type(file):
     valid_mime_types = ['application/pdf', 'image/jpeg', 'image/png', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
     valid_extensions = ['pdf', 'jpg', 'jpeg', 'png', 'docx']
-    mime_type = file.file.content_type
+
+    # Get MIME type from uploaded file (if available)
+    mime_type = getattr(file, 'content_type', None)
+    
+    # If `content_type` is not available, use mimetypes.guess_type
+    if not mime_type:
+        mime_type, _ = mimetypes.guess_type(file.name)
+
     extension = file.name.split('.')[-1].lower()
+
     if mime_type not in valid_mime_types or extension not in valid_extensions:
         raise ValidationError('Unsupported file type. Please upload a PDF, image, or DOCX file.')
-
 
 class Property(models.Model):
     LAND_TITLE_FILE_TYPES = [
