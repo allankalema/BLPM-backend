@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Account, Location
+from django.contrib.auth import password_validation
+from django.core.exceptions import ValidationError
 
 class BasicAccountSerializer(serializers.ModelSerializer):
     """ Serializer for initial user signup (without roles or location). """
@@ -56,3 +58,16 @@ class LocationUpdateSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+
+class PasswordUpdateSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+
+    def validate_new_password(self, value):
+        """ Validate the new password strength. """
+        try:
+            password_validation.validate_password(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(str(e))
+        return value

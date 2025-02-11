@@ -132,32 +132,36 @@ def update_location(request):
             'location': serializer.data
         })
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-     
+
     
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_password(request):
     """
-    Update the user's password.
+    Update the password of a user.
     """
-    user = request.user
-    old_password = request.data.get('old_password')
-    new_password = request.data.get('new_password')
+    user = request.user  # Get the currently logged-in user
 
-    if not user.check_password(old_password):
-        return Response({'error': 'Old password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+    # Validate the serializer with the old password and new password
+    serializer = PasswordUpdateSerializer(data=request.data)
 
-    if old_password == new_password:
-        return Response({'error': 'New password must be different from the old password'}, status=status.HTTP_400_BAD_REQUEST)
+    if serializer.is_valid():
+        old_password = serializer.validated_data['old_password']
+        new_password = serializer.validated_data['new_password']
 
-    user.set_password(new_password)
-    user.save()
+        # Check if the old password matches
+        if not user.check_password(old_password):
+            return Response({'detail': 'Old password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Ensure the user session is updated with the new password
-    # update_session_auth_hash(request, user)
+        # Update the password
+        user.set_password(new_password)
+        user.save()
 
-    return Response({'message': 'Password updated successfully'})
+        return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
