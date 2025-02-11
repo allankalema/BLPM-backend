@@ -11,7 +11,7 @@ urlpatterns = [
     path('test', users.test, name='test'),
     
     # User CRUD URLs
-    path('register', users.create_user, name='create_user'),  # Fixed this line
+    path('register', users.register, name='create_user'),  # Fixed this line
     path('check-username/<str:username>', users.checkUserName),
     # path('users/<str:username>', users.get_user, name='get_user'),
     path('users/update', users.update_user, name='update_user'),
