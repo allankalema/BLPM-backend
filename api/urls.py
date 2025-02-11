@@ -7,7 +7,7 @@ urlpatterns = [
 
     # User Registration (Two-step)
     path('register', users.register, name='register'),
-    path('complete-profile', users.complete_profile, name='complete_profile'),
+    path('create_location', users.create_location, name='complete_profile'),
 
     # Other User Operations
     path('check-username/<str:username>', users.checkUserName),

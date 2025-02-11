@@ -54,21 +54,34 @@ def register(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['PUT'])
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def complete_profile(request):
+def create_location(request):
     """
-    Phase 2: Assigns roles (surveyor, land owner, etc.) and updates location.
+    Create location for a specific user.
+    The user ID is included in the request JSON.
     """
     user = request.user  # The logged-in user
-    serializer = CompleteAccountSerializer(user, data=request.data, partial=True)
+    
+    # Ensure that the user ID in the request matches the logged-in user's ID
+    user_id = request.data.get('user_id')
+    if user_id != user.id:
+        return Response({'error': 'User ID mismatch'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response({'message': 'Profile updated successfully!'}, status=status.HTTP_200_OK)
+    # Extract location data from the request
+    location_data = {
+        'village': request.data.get('village'),
+        'parish': request.data.get('parish'),
+        'subcounty': request.data.get('subcounty'),
+        'county': request.data.get('county'),
+        'district': request.data.get('district'),
+        'country': request.data.get('country', 'Uganda'),  # Default to Uganda if no country is provided
+    }
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    # Create the location and associate it with the user
+    location = Location.objects.create(account=user, **location_data)
+    
+    return Response({'message': 'Location created successfully!', 'location': LocationSerializer(location).data}, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
 def get_user(request, username):
