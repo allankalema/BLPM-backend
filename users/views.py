@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from .models import Account, Location
-from .serializers import AccountSerializer
+from .serializers import *
 
 @api_view(['GET'])
 def test(request):
@@ -46,55 +46,50 @@ def get_auth_user(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def create_user(request):
+def register(request):
     """
-    Create a new user.
+    Phase 1: User signup - Creates an account with basic details.
     """
-    try:
-        # Extract user data from the request
-        username = request.data.get('username')
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
-        email = request.data.get('email')
-        date_of_birth = '2000-12-12'
-        nin = request.data.get('nin')
-        password = request.data.get('password')
-
-        # Check if any required fields are missing
-        # if not all([username, first_name, last_name, email, date_of_birth, nin, password]):
-        #     return Response({'error': 'All required fields must be provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Create the Account user first
-        user = Account.objects.create_user(
-            username=username,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            date_of_birth=date_of_birth,
-            nin=nin,
-            password=password
-        )
-
-        # Extract location data if it exists
-        location_data = request.data.get('location')
-        if location_data:
-            # Ensure all required location fields exist
-            required_location_fields = ['village', 'parish', 'subcounty', 'county', 'district']
-            if not all(field in location_data for field in required_location_fields):
-                return Response({'error': 'All location fields must be provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Create the location and associate it with the newly created user
-            Location.objects.create(account=user, **location_data)
-
+    serializer = BasicAccountSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        user = serializer.save()
         return Response({
-            'message': 'User created successfully',
-            'user': AccountSerializer(user).data
+            'message': 'Account created successfully. Proceed to complete profile.',
+            'user_id': user.id  # Send user_id for phase 2
         }, status=status.HTTP_201_CREATED)
 
-    except Exception as e:
-        return Response({'error': f'Error: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_location(request):
+    """
+    Create location for a specific user.
+    The user ID is included in the request JSON.
+    """
+    user = request.user  # The logged-in user
+    
+    # Ensure that the user ID in the request matches the logged-in user's ID
+    user_id = request.data.get('user_id')
+    if user_id != user.id:
+        return Response({'error': 'User ID mismatch'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Extract location data from the request
+    location_data = {
+        'village': request.data.get('village'),
+        'parish': request.data.get('parish'),
+        'subcounty': request.data.get('subcounty'),
+        'county': request.data.get('county'),
+        'district': request.data.get('district'),
+        'country': request.data.get('country', 'Uganda'),  # Default to Uganda if no country is provided
+    }
+
+    # Create the location and associate it with the user
+    location = Location.objects.create(account=user, **location_data)
+    
+    return Response({'message': 'Location created successfully!', 'location': LocationSerializer(location).data}, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
 def get_user(request, username):
@@ -105,11 +100,11 @@ def get_user(request, username):
     return Response(AccountSerializer(user).data)
 
 
-@api_view(['POST'])
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_user(request):
     """
-    Update user information.
-    Only the user who is logged in or an admin can update their own data.
+    Update user information based on user ID.
     """
 
     username = request.user.get_username()
@@ -143,25 +138,29 @@ def update_user(request):
 @permission_classes([IsAuthenticated])
 def update_password(request):
     """
-    Update the user's password.
+    Update the password of a user.
     """
-    user = request.user
-    old_password = request.data.get('old_password')
-    new_password = request.data.get('new_password')
+    user = request.user  # Get the currently logged-in user
 
-    if not user.check_password(old_password):
-        return Response({'error': 'Old password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+    # Validate the serializer with the old password and new password
+    serializer = PasswordUpdateSerializer(data=request.data)
 
-    if old_password == new_password:
-        return Response({'error': 'New password must be different from the old password'}, status=status.HTTP_400_BAD_REQUEST)
+    if serializer.is_valid():
+        old_password = serializer.validated_data['old_password']
+        new_password = serializer.validated_data['new_password']
 
-    user.set_password(new_password)
-    user.save()
+        # Check if the old password matches
+        if not user.check_password(old_password):
+            return Response({'detail': 'Old password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Ensure the user session is updated with the new password
-    # update_session_auth_hash(request, user)
+        # Update the password
+        user.set_password(new_password)
+        user.save()
 
-    return Response({'message': 'Password updated successfully'})
+        return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -170,3 +169,16 @@ def user_logout(request):
     Logout the user by deleting or ignoring the access token.
     """
     return Response({'message': 'You have successfully logged out'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def user_logout(request):
+    """
+    Logout the user by simply disregarding the access token.
+    This means the token will no longer be valid as the user must log in again.
+    """
+    # Here we could also add the logic for blacklisting the token if using a blacklist.
+    # In the case of JWT, we generally don't store anything server-side, so no action is needed.
+    
+    return Response({'message': 'You have successfully logged out'}, status=status.HTTP_200_OK)
