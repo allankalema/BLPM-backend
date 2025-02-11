@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from .models import Account, Location
-from .serializers import AccountSerializer
+from .serializers import *
 
 
 @api_view(['POST'])
@@ -38,54 +38,36 @@ def checkUserName(request, username):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def create_user(request):
+def register(request):
     """
-    Create a new user.
+    Phase 1: User signup - Creates an account with basic details.
     """
-    try:
-        # Extract user data from the request
-        username = request.data.get('username')
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
-        email = request.data.get('email')
-        date_of_birth = '2000-12-12'
-        nin = request.data.get('nin')
-        password = request.data.get('password')
-
-        # Check if any required fields are missing
-        # if not all([username, first_name, last_name, email, date_of_birth, nin, password]):
-        #     return Response({'error': 'All required fields must be provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Create the Account user first
-        user = Account.objects.create_user(
-            username=username,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            date_of_birth=date_of_birth,
-            nin=nin,
-            password=password
-        )
-
-        # Extract location data if it exists
-        location_data = request.data.get('location')
-        if location_data:
-            # Ensure all required location fields exist
-            required_location_fields = ['village', 'parish', 'subcounty', 'county', 'district']
-            if not all(field in location_data for field in required_location_fields):
-                return Response({'error': 'All location fields must be provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Create the location and associate it with the newly created user
-            Location.objects.create(account=user, **location_data)
-
+    serializer = BasicAccountSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        user = serializer.save()
         return Response({
-            'message': 'User created successfully',
-            'user': AccountSerializer(user).data
+            'message': 'Account created successfully. Proceed to complete profile.',
+            'user_id': user.id  # Send user_id for phase 2
         }, status=status.HTTP_201_CREATED)
 
-    except Exception as e:
-        return Response({'error': f'Error: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def complete_profile(request):
+    """
+    Phase 2: Assigns roles (surveyor, land owner, etc.) and updates location.
+    """
+    user = request.user  # The logged-in user
+    serializer = CompleteAccountSerializer(user, data=request.data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'Profile updated successfully!'}, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
