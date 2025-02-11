@@ -1,9 +1,9 @@
 import mimetypes
 from django.db import models
-from users.models import Account, Location
+from users.models import Account
 from django.core.exceptions import ValidationError
 
-# ✅ Define the function BEFORE the Property model
+
 def validate_file_type(file):
     valid_mime_types = ['application/pdf', 'image/jpeg', 'image/png', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
     valid_extensions = ['pdf', 'jpg', 'jpeg', 'png', 'docx']
@@ -30,16 +30,12 @@ class Property(models.Model):
     land_title = models.CharField(max_length=255)  # Title of the land
     title_number = models.CharField(max_length=100, unique=True)  # Unique title number
     title_document = models.FileField(
-    upload_to='land_titles/',
-    validators=[validate_file_type],
-    help_text="Upload land title documents (PDF, image, or docx files)."
-        )       # File field for scanned documents, images, or PDFs
+        upload_to='land_titles/',
+        validators=[validate_file_type],
+        help_text="Upload land title documents (PDF, image, or docx files)."
+    )  # File field for scanned documents, images, or PDFs
 
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='properties')  # Foreign key to the Account table
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='properties')  # Foreign key to Location table
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)  # Latitude coordinate
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)  # Longitude coordinate
-    altitude = models.DecimalField(max_digits=9, decimal_places=2)  # Altitude coordinate
+    owner = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='properties')  # Foreign key to Account table
     total_area = models.DecimalField(max_digits=10, decimal_places=2, help_text="Area in square meters")  # Total area of the land
     reference_point = models.CharField(max_length=255, help_text="Nearest benchmark or fixed point for reference")  # Nearest reference point
     date_surveyed = models.DateField()  # Date the land was surveyed
@@ -50,5 +46,14 @@ class Property(models.Model):
     class Meta:
         verbose_name_plural = "Properties"
 
+class LandLocation(models.Model):
+    property = models.OneToOneField(Property, on_delete=models.CASCADE, related_name='land_location')  # Link to Property
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)  # Latitude coordinate
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)  # Longitude coordinate
+    altitude = models.DecimalField(max_digits=9, decimal_places=2)  # Altitude coordinate
 
+    def __str__(self):
+        return f"Location for {self.property.land_title} ({self.property.title_number})"
 
+    class Meta:
+        verbose_name_plural = "Land Locations"
