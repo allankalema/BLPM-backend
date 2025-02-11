@@ -51,6 +51,12 @@ class LandLocation(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6)  # Latitude coordinate
     longitude = models.DecimalField(max_digits=9, decimal_places=6)  # Longitude coordinate
     altitude = models.DecimalField(max_digits=9, decimal_places=2)  # Altitude coordinate
+    village = models.CharField(max_length=100, null=True, blank=True)
+    parish = models.CharField(max_length=100, null=True, blank=True)
+    subcounty = models.CharField(max_length=100, null=True, blank=True)
+    county = models.CharField(max_length=100, null=True, blank=True)
+    district = models.CharField(max_length=100, null=True, blank=True)
+    country = models.CharField(max_length=100, default='Uganda', null=True, blank=True)
 
     def __str__(self):
         return f"Location for {self.property.land_title} ({self.property.title_number})"
