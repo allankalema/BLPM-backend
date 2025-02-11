@@ -92,39 +92,47 @@ def get_user(request, username):
     return Response(AccountSerializer(user).data)
 
 
-@api_view(['POST'])
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_user(request):
     """
-    Update user information.
-    Only the user who is logged in or an admin can update their own data.
+    Update user information based on user ID.
     """
+    user_id = request.data.get('id')  # Retrieve the user ID
+    user = get_object_or_404(Account, id=user_id)
 
-    username = request.data.get('username')
-    if request.user.username != username:
-        return Response({'error': 'You do not have permission to update this user'}, status=status.HTTP_403_FORBIDDEN)
+    # Serialize and update the user's details
+    serializer = AccountUpdateSerializer(user, data=request.data, partial=True)
 
-    user = get_object_or_404(Account, username=username)
-    
-    # Update fields from the request
-    user.first_name = request.data.get('first_name', user.first_name)
-    user.last_name = request.data.get('last_name', user.last_name)
-    user.email = request.data.get('email', user.email)
-    # user.date_of_birth = request.data.get('date_of_birth', user.date_of_birth)
-    # user.nin = request.data.get('nin', user.nin)
-    
-    # # If location data is provided, update it
-    # if 'location' in request.data:
-    #     user.location = request.data['location']
-    
-    # Save the changes
-    user.save()
-
-    return Response({
-        'message': 'User updated successfully',
-        'user': AccountSerializer(user).data
-    })
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message': 'User updated successfully',
+            'user': serializer.data
+        })
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_location(request):
+    """
+    Update location information based on user ID.
+    """
+    user_id = request.data.get('id')  # Retrieve the user ID
+    location = get_object_or_404(Location, account__id=user_id)  # Get location related to the user ID
+
+    # Serialize and update the location details
+    serializer = LocationUpdateSerializer(location, data=request.data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message': 'Location updated successfully',
+            'location': serializer.data
+        })
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+     
     
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

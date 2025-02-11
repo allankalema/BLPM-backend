@@ -12,6 +12,7 @@ urlpatterns = [
     # Other User Operations
     path('check-username/<str:username>', users.checkUserName),
     path('users/update', users.update_user, name='update_user'),
+    path('location/update/', users.update_location, name='update_location'),
     path('update_password', users.update_password, name='update_password'),
     path('logout', users.user_logout, name='user_logout'),
 ]

@@ -31,25 +31,28 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = ['village', 'parish', 'subcounty', 'county', 'district', 'country']
 
 
-class CompleteAccountSerializer(serializers.ModelSerializer):
-    """ Serializer for updating roles and adding location info. """
-    location = LocationSerializer(required=False)
-
+class AccountUpdateSerializer(serializers.ModelSerializer):
+    """ Serializer for updating user details. """
     class Meta:
         model = Account
-        fields = ['land_owner', 'surveyor', 'govt_official', 'law_enforcement', 'location', 'date_of_birth', 'nin']
-
+        fields = ['first_name', 'last_name', 'email', 'date_of_birth', 'nin', 'land_owner', 'surveyor', 'govt_official', 'law_enforcement']
+        
     def update(self, instance, validated_data):
-        """ Assign user roles and update location. """
-        location_data = validated_data.pop('location', None)
-
-        # Update user roles and additional fields
+        """ Update the user fields based on the provided data. """
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+        return instance
 
-        # Update or create location
-        if location_data:
-            Location.objects.update_or_create(account=instance, defaults=location_data)
-
+class LocationUpdateSerializer(serializers.ModelSerializer):
+    """ Serializer for updating location details. """
+    class Meta:
+        model = Location
+        fields = ['village', 'parish', 'subcounty', 'county', 'district', 'country']
+        
+    def update(self, instance, validated_data):
+        """ Update the location fields. """
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
         return instance
