@@ -161,7 +161,7 @@ def update_password(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
@@ -169,3 +169,16 @@ def user_logout(request):
     Logout the user by deleting or ignoring the access token.
     """
     return Response({'message': 'You have successfully logged out'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def user_logout(request):
+    """
+    Logout the user by simply disregarding the access token.
+    This means the token will no longer be valid as the user must log in again.
+    """
+    # Here we could also add the logic for blacklisting the token if using a blacklist.
+    # In the case of JWT, we generally don't store anything server-side, so no action is needed.
+    
+    return Response({'message': 'You have successfully logged out'}, status=status.HTTP_200_OK)

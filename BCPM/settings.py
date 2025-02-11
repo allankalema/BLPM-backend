@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'transfer',
     'users',
     'verification',
+    'rest_framework_simplejwt.token_blacklist',
 
     # API App
     'api',
