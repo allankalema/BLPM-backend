@@ -9,6 +9,9 @@ from rest_framework import status
 from .models import Account, Location
 from .serializers import AccountSerializer
 
+@api_view(['GET'])
+def test(request):
+    return Response({'message': 'Test passed'})
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -35,6 +38,11 @@ def checkUserName(request, username):
 
     is_available = not Account.objects.filter(username=username).exists()
     return Response({"available": is_available}, status=200)
+
+@api_view(['GET'])
+def get_auth_user(request):
+    
+    return Response({'user': AccountSerializer(request.user).data})
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -104,9 +112,9 @@ def update_user(request):
     Only the user who is logged in or an admin can update their own data.
     """
 
-    username = request.data.get('username')
-    if request.user.username != username:
-        return Response({'error': 'You do not have permission to update this user'}, status=status.HTTP_403_FORBIDDEN)
+    username = request.user.get_username()
+    # if request.user.username != username:
+    #     return Response({'error': 'You do not have permission to update this user'}, status=status.HTTP_403_FORBIDDEN)
 
     user = get_object_or_404(Account, username=username)
     

@@ -10,6 +10,8 @@ urlpatterns = [
     path('login', users.user_login, name='user_login'),
     path('token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth-user', users.get_auth_user, name='get_auth_user'),
+    path('test', users.test, name='test'),
     
     # User CRUD URLs
     path('register', users.create_user, name='create_user'),  # Fixed this line

@@ -12,4 +12,5 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ['username', 'first_name', 'middle_name', 'last_name', 'email', 'date_of_birth', 'nin', 'land_owner', 'surveyor', 'govt_official', 'law_enforcement', 'location']
+        # fields = ['username', 'first_name', 'middle_name', 'last_name', 'email', 'date_of_birth', 'nin', 'land_owner', 'surveyor', 'govt_official', 'law_enforcement', 'location']
+        fields = '__all__'
