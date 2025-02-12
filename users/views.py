@@ -9,10 +9,6 @@ from rest_framework import status
 from .models import Account, Location
 from .serializers import *
 
-@api_view(['GET'])
-def test(request):
-    return Response({'message': 'Test passed'})
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_login(request):
@@ -41,8 +37,7 @@ def checkUserName(request, username):
 
 @api_view(['GET'])
 def get_auth_user(request):
-    
-    return Response({'user': AccountSerializer(request.user).data})
+    return Response({'user': BasicAccountSerializer(request.user).data})
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -97,7 +92,7 @@ def get_user(request, username):
     Retrieve user details by username.
     """
     user = get_object_or_404(Account, username=username)
-    return Response(AccountSerializer(user).data)
+    return Response(BasicAccountSerializer(user).data)
 
 
 @api_view(['PUT'])
@@ -129,7 +124,7 @@ def update_user(request):
 
     return Response({
         'message': 'User updated successfully',
-        'user': AccountSerializer(user).data
+        'user': BasicAccountSerializer(user).data
     })
 
 
