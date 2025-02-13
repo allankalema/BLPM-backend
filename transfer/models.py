@@ -12,14 +12,16 @@ class Transfer(models.Model):
     from_user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         related_name='transfers_from', 
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
     )
     to_user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         related_name='transfers_to', 
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
     )
-    land_title = models.ForeignKey(Property, related_name='transfers', on_delete=models.CASCADE)
+    land_title = models.ForeignKey(Property, null=True, related_name='transfers', on_delete=models.CASCADE)
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,

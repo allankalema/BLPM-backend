@@ -21,7 +21,7 @@ def user_login(request):
         refresh = RefreshToken.for_user(user)
         return Response({
             'refresh': str(refresh),
-            'access': str(refresh.access_token),
+            'access': str(refresh.access_token)
         })
     else:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -36,8 +36,13 @@ def checkUserName(request, username):
     return Response({"available": is_available}, status=200)
 
 @api_view(['GET'])
-def get_auth_user(request):
-    return Response({'user': BasicAccountSerializer(request.user).data})
+@permission_classes([AllowAny])
+def checkEmail(request, email):
+    if not email:
+        return Response({"error": "Email is required"}, status=400)
+
+    is_available = not Account.objects.filter(email=email).exists()
+    return Response({"available": is_available}, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -58,7 +63,6 @@ def register(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def create_location(request):
     """
     Create location for a specific user.
@@ -158,22 +162,12 @@ def update_password(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def user_logout(request):
-    """
-    Logout the user by deleting or ignoring the access token.
-    """
-    return Response({'message': 'You have successfully logged out'})
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def user_logout(request):
-    """
-    Logout the user by simply disregarding the access token.
-    This means the token will no longer be valid as the user must log in again.
-    """
-    # Here we could also add the logic for blacklisting the token if using a blacklist.
-    # In the case of JWT, we generally don't store anything server-side, so no action is needed.
+    try:
+        refresh_token = request.data["refresh_token"]
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return Response({'message': 'You have successfully logged out'}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
-    return Response({'message': 'You have successfully logged out'}, status=status.HTTP_200_OK)

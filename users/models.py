@@ -34,7 +34,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100)
     email = models.EmailField(max_length=100, unique=True)
     date_of_birth = models.DateField()
-    nin = models.CharField(max_length=20, unique=True)
+    nin = models.CharField(max_length=20, unique=True, blank=True, null=True)
 
     # Role fields
     land_owner = models.BooleanField(default=False)
@@ -56,6 +56,9 @@ class Account(AbstractBaseUser, PermissionsMixin):
     
     def get_username(self):
         return self.username
+    
+    def get_id(self):
+        return self.id
 
     class Meta:
         verbose_name_plural = "Accounts"

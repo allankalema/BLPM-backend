@@ -27,7 +27,7 @@ class Property(models.Model):
         ('doc', 'Document'),
     ]
 
-    land_title = models.CharField(max_length=255)  # Title of the land
+    land_title = models.CharField(max_length=255, null=True)  # Title of the land
     title_number = models.CharField(max_length=100, unique=True)  # Unique title number
     title_document = models.FileField(
         upload_to='land_titles/',
@@ -35,10 +35,11 @@ class Property(models.Model):
         help_text="Upload land title documents (PDF, image, or docx files)."
     )  # File field for scanned documents, images, or PDFs
 
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='properties')  # Foreign key to Account table
+    owner = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='properties', null=True)  # Foreign key to Account table
     total_area = models.DecimalField(max_digits=10, decimal_places=2, help_text="Area in square meters")  # Total area of the land
     reference_point = models.CharField(max_length=255, help_text="Nearest benchmark or fixed point for reference")  # Nearest reference point
-    date_surveyed = models.DateField()  # Date the land was surveyed
+    date_surveyed = models.DateField(null=True, blank=True)  # Date the land was surveyed
+    status = models.IntegerField(default=1)  # Status of the land title
 
     def __str__(self):
         return f"{self.land_title} ({self.title_number})"

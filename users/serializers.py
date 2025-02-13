@@ -7,11 +7,11 @@ class BasicAccountSerializer(serializers.ModelSerializer):
     """ Serializer for initial user signup (without roles or location). """
     password = serializers.CharField(write_only=True)
     date_of_birth = serializers.DateField(required=True)
-    nin = serializers.CharField(required=True)
+    nin = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = Account
-        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'date_of_birth', 'nin']
+        fields = ['id', 'username', 'first_name', 'last_name', 'middle_name', 'email', 'password', 'date_of_birth', 'nin']
 
     def create(self, validated_data):
         """ Create user with hashed password. """
